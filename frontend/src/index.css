@@ -157,7 +157,7 @@ h1.hero-title .accent { color: var(--c1); }
 
 /* ── SECTION SHARED ── */
 section { padding: 100px 0; position: relative; }
-.container { max-width: 1160px; margin: 0 auto; padding: 0 48px; }
+.container { max-width: 1720px; margin: 0 auto; padding: 0 5%; width: 100%; }
 
 .section-eyebrow {
   font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
