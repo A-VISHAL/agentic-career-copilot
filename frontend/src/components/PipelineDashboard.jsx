@@ -1,15 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { uploadResume, getSampleResume } from '../utils/api'
+import NavigationButton from './NavigationButton'
+import Breadcrumb from './Breadcrumb'
+import ProgressBar from './ProgressBar'
+import StepCard from './StepCard'
 
 const API_BASE = 'http://localhost:8000'
 
-const PipelineDashboard = () => {
+const PipelineDashboard = ({ onNavigateHome }) => {
   const [loading, setLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [pipelineData, setPipelineData] = useState(null)
   const [resumeFile, setResumeFile] = useState(null)
   const [jobDescription, setJobDescription] = useState('')
   const [resumeId, setResumeId] = useState(null)
+  const [error, setError] = useState(null)
+  const [errorStep, setErrorStep] = useState(null)
+
+  // Keyboard navigation - Escape key focuses navigation button
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        document.querySelector('[aria-label="Navigate back to home page"]')?.focus()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const steps = [
     { id: 1, name: 'Upload', icon: '📄' },
@@ -26,6 +43,11 @@ const PipelineDashboard = () => {
     { id: 12, name: 'Visualize', icon: '📈' }
   ]
 
+  const breadcrumbItems = [
+    { label: 'Home', onClick: onNavigateHome },
+    { label: 'Pipeline Dashboard' }
+  ]
+
   const handleResumeUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -33,6 +55,8 @@ const PipelineDashboard = () => {
     setResumeFile(file)
     setLoading(true)
     setCurrentStep(1)
+    setError(null)
+    setErrorStep(null)
 
     try {
       const response = await uploadResume(file)
@@ -40,6 +64,8 @@ const PipelineDashboard = () => {
       setCurrentStep(2)
     } catch (error) {
       console.error('Upload error:', error)
+      setError('Failed to upload resume')
+      setErrorStep(1)
       alert('Failed to upload resume')
     } finally {
       setLoading(false)
@@ -54,6 +80,8 @@ const PipelineDashboard = () => {
 
     setLoading(true)
     setCurrentStep(3)
+    setError(null)
+    setErrorStep(null)
 
     try {
       let currentResumeId = resumeId
@@ -81,14 +109,24 @@ const PipelineDashboard = () => {
       setCurrentStep(12)
     } catch (error) {
       console.error('Pipeline error:', error)
+      setError(error.message || 'Pipeline execution failed')
+      setErrorStep(currentStep)
       alert('Pipeline execution failed')
     } finally {
       setLoading(false)
     }
   }
 
+  const handleRetry = () => {
+    setError(null)
+    setErrorStep(null)
+    runFullPipeline()
+  }
+
   const useSampleData = async () => {
     setLoading(true)
+    setError(null)
+    setErrorStep(null)
     try {
       const response = await getSampleResume()
       setResumeId(response.resume_id)
@@ -96,14 +134,52 @@ const PipelineDashboard = () => {
       setCurrentStep(1)
     } catch (error) {
       console.error('Sample data error:', error)
+      setError('Failed to load sample data')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #03050A 0%, #0F182C 100%)', padding: '60px 20px' }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #03050A 0%, #0F182C 100%)', padding: '60px 20px', animation: 'fadeIn 0.4s ease-out' }}>
+      {/* Skip to content link */}
+      <a
+        href="#main-content"
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          zIndex: 999,
+          padding: '1em',
+          background: '#6B6BFF',
+          color: '#fff',
+          textDecoration: 'none',
+          borderRadius: '4px',
+          fontWeight: '600'
+        }}
+        onFocus={(e) => {
+          e.target.style.left = '10px'
+          e.target.style.top = '10px'
+        }}
+        onBlur={(e) => {
+          e.target.style.left = '-9999px'
+        }}
+      >
+        Skip to main content
+      </a>
+
+      {/* Navigation */}
+      <div style={{ position: 'fixed', top: '20px', left: '20px', zIndex: 1000 }} className="nav-container">
+        <NavigationButton
+          onClick={onNavigateHome}
+          label="Back to Home"
+          icon="←"
+          ariaLabel="Navigate back to home page"
+        />
+        <Breadcrumb items={breadcrumbItems} />
+      </div>
+
+      {/* Main content */}
+      <div id="main-content" style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <h1 style={{ fontSize: '48px', fontWeight: '800', color: '#EDF2FF', marginBottom: '16px', letterSpacing: '-0.03em' }}>
             🚀 Agentic Career Copilot Pipeline
@@ -166,30 +242,25 @@ const PipelineDashboard = () => {
         <div style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', borderRadius: '16px', padding: '32px', marginBottom: '32px', border: '1px solid rgba(255,255,255,0.1)' }}>
           <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#EDF2FF', marginBottom: '24px' }}>Pipeline Progress</h2>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
+          <div className="step-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
             {steps.map((step, index) => (
-              <div
+              <StepCard
                 key={step.id}
-                style={{
-                  padding: '16px',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  background: index < currentStep ? 'rgba(0,229,180,0.2)' : index === currentStep ? 'rgba(107,107,255,0.2)' : 'rgba(255,255,255,0.05)',
-                  border: index < currentStep ? '2px solid #00E5B4' : index === currentStep ? '2px solid #6B6BFF' : '1px solid rgba(255,255,255,0.1)',
-                  animation: index === currentStep && loading ? 'pulse 1.5s ease-in-out infinite' : 'none'
-                }}
-              >
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>{step.icon}</div>
-                <div style={{ color: '#EDF2FF', fontSize: '12px', fontWeight: '600' }}>{step.name}</div>
-                {index < currentStep && (
-                  <div style={{ color: '#00E5B4', fontSize: '10px', marginTop: '4px' }}>✓ Complete</div>
-                )}
-                {index === currentStep && loading && (
-                  <div style={{ color: '#6B6BFF', fontSize: '10px', marginTop: '4px' }}>⏳ Processing</div>
-                )}
-              </div>
+                step={step}
+                index={index}
+                currentStep={currentStep}
+                loading={loading}
+                error={error}
+                onRetry={index === errorStep ? handleRetry : null}
+              />
             ))}
           </div>
+
+          <ProgressBar 
+            currentStep={currentStep} 
+            totalSteps={steps.length} 
+            isLoading={loading} 
+          />
         </div>
 
         {pipelineData && (
@@ -274,6 +345,48 @@ const PipelineDashboard = () => {
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation: none !important;
+            transition: none !important;
+          }
+        }
+
+        @media (max-width: 767px) {
+          .step-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .nav-container button {
+            padding: 12px !important;
+          }
+          .nav-container {
+            margin: 12px !important;
+          }
+        }
+
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .step-grid {
+            grid-template-columns: repeat(4, 1fr) !important;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .step-grid {
+            grid-template-columns: repeat(6, 1fr) !important;
+          }
         }
       `}</style>
     </div>
