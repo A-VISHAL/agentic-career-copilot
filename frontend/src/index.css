@@ -517,15 +517,15 @@ h2.section-title em { font-family: var(--font-serif); font-style: italic; font-w
 
 /* ── TECH STACK ── */
 .tech-section { background: var(--bg0); }
-.tech-cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 48px; }
+.tech-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 48px; }
 .tech-card {
   background: var(--bg1); border: 1px solid var(--border); border-radius: 12px;
-  padding: 18px; transition: border-color .2s;
+  padding: 24px; transition: border-color .2s;
 }
 .tech-card:hover { border-color: var(--border2); }
-.tech-layer { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; color: var(--c3); margin-bottom: 6px; }
-.tech-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-.tech-desc { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+.tech-layer { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--c3); margin-bottom: 8px; }
+.tech-name { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.tech-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
 /* ── CTA ── */
 .cta-section {
