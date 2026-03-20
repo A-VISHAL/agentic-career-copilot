@@ -23,12 +23,43 @@ function App() {
   if (showPipeline) {
     return (
       <>
-        <div className="fixed top-4 left-4 z-50">
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          zIndex: 1000
+        }}>
           <button
             onClick={() => setShowPipeline(false)}
-            className="bg-white/20 backdrop-blur-lg text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/30 transition-all"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(10px)',
+              color: '#EDF2FF',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontWeight: '600',
+              fontSize: '14px',
+              border: '1px solid rgba(255,255,255,0.2)',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              fontFamily: 'var(--font-display)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(255,255,255,0.15)'
+              e.target.style.borderColor = 'rgba(0,229,180,0.4)'
+              e.target.style.transform = 'translateX(-2px)'
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(255,255,255,0.1)'
+              e.target.style.borderColor = 'rgba(255,255,255,0.2)'
+              e.target.style.transform = 'translateX(0)'
+            }}
           >
-            ← Back to Home
+            <span style={{ fontSize: '16px' }}>←</span>
+            <span>Back to Home</span>
           </button>
         </div>
         <PipelineDashboard />
