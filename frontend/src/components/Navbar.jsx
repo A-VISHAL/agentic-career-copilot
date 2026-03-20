@@ -13,7 +13,19 @@ export default function Navbar({ onPipelineClick }) {
         {onPipelineClick && (
           <button 
             onClick={onPipelineClick}
-            className="text-purple-400 hover:text-purple-300 font-semibold"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--c1)',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'color 0.2s',
+              fontFamily: 'inherit',
+              padding: '0'
+            }}
+            onMouseEnter={(e) => e.target.style.color = 'var(--text)'}
+            onMouseLeave={(e) => e.target.style.color = 'var(--c1)'}
           >
             🚀 Full Pipeline
           </button>

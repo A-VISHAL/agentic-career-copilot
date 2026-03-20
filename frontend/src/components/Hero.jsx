@@ -53,7 +53,25 @@ export default function Hero({ onPipelineClick }) {
           <span>→</span>
         </a>
         {onPipelineClick && (
-          <button onClick={onPipelineClick} className="btn-ghost">
+          <button 
+            onClick={onPipelineClick} 
+            className="btn-ghost"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'transparent',
+              color: 'var(--text)',
+              padding: '14px 28px',
+              borderRadius: '8px',
+              fontFamily: 'var(--font-display)',
+              fontSize: '15px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              border: '1px solid var(--border2)',
+              transition: 'border-color 0.2s, background 0.2s'
+            }}
+          >
             🚀 View Full Pipeline
           </button>
         )}
