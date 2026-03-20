@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-export default function Hero() {
+export default function Hero({ onPipelineClick }) {
   const statsRef = useRef(null)
 
   useEffect(() => {
@@ -52,6 +52,11 @@ export default function Hero() {
           <span>Analyze my resume</span>
           <span>→</span>
         </a>
+        {onPipelineClick && (
+          <button onClick={onPipelineClick} className="btn-ghost">
+            🚀 View Full Pipeline
+          </button>
+        )}
         <a href="#how-it-works" className="btn-ghost">See how it works</a>
       </div>
 
@@ -69,8 +74,8 @@ export default function Hero() {
           <span className="hstat-label">Resumes ATS-Rejected</span>
         </div>
         <div>
-          <span className="hstat-num counter" data-target="6">0</span>
-          <span className="hstat-label">AI Copilot Stages</span>
+          <span className="hstat-num counter" data-target="12">0</span>
+          <span className="hstat-label">Pipeline Stages</span>
         </div>
       </div>
     </section>

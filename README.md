@@ -105,6 +105,40 @@ npm run dev
 ```
 *The React frontend will start on usually `http://localhost:5173`.*
 
+### 3. Access the Full Pipeline Dashboard
+Once both servers are running:
+1. Open http://localhost:5173 in your browser
+2. Click **"🚀 View Full Pipeline"** in the hero section or navbar
+3. Choose to upload your resume or click **"Use Sample Data"**
+4. Enter a job description (or use the pre-filled sample)
+5. Click **"🚀 Run Full Pipeline"** to execute all 12 steps
+
+Watch as the system processes through:
+- Resume Parsing → JD Parsing → Semantic Matching → Explainability (SHAP+DiCE) → Skill Gap Analysis → Resume Optimization → Recruiter Simulation → Application Generation → Agentic Workflow → Visualization
+
+---
+
+## 🎯 Complete 12-Step Pipeline
+
+The full pipeline dashboard demonstrates the complete architecture:
+
+1. **📄 User Input Layer** - Upload resume + paste job description
+2. **🔍 Resume Parsing** - Extract skills, experience, education, projects
+3. **📋 JD Parsing** - Extract required/preferred skills, experience requirements
+4. **🎯 Semantic Matching** - Multi-dimensional scoring with embeddings
+5. **💡 Explainability** - SHAP feature attribution + DiCE counterfactuals
+6. **📊 Skill Gap Analysis** - Identify missing skills with priority ranking
+7. **✨ Resume Optimization** - AI-powered bullet rewriting with metrics
+8. **👔 Recruiter Simulation** - ATS screening + human review decision
+9. **📝 Application Generation** - Tailored resume + cover letter
+10. **🤖 Agentic Workflow** - Job tracking, reminders, interview prep
+11. **💾 Database Storage** - Persistent state management
+12. **📈 Visualization** - Interactive dashboard with all results
+
+**API Endpoint:** `POST /api/pipeline/full` - Executes all steps in one call
+
+See `ARCHITECTURE.md` for detailed documentation of each step.
+
 ---
 
 ## ⚡ Demo Mode Architecture

@@ -258,3 +258,260 @@ async def chat(request: ChatRequest):
     )
     
     return {"response": response}
+
+
+# ─── EXPLAINABILITY (STEP 5) ───
+
+@router.post("/api/explainability")
+async def get_explainability(
+    resume_id: str = Form(None),
+    job_description: str = Form(...)
+):
+    """Get SHAP + DiCE explainability analysis."""
+    from ..services.explainability import generate_explainability_report
+    from ..services.matcher import parse_job_description
+    
+    resume = resume_store.get(resume_id, get_sample_resume())
+    jd = parse_job_description(job_description)
+    match_result = await match_resume_to_job(resume, job_description)
+    
+    report = generate_explainability_report(resume, jd, match_result)
+    
+    return report
+
+
+# ─── SKILL GAP ANALYSIS (STEP 6) ───
+
+@router.post("/api/skill-gap")
+async def analyze_skill_gap(
+    resume_id: str = Form(None),
+    job_description: str = Form(...)
+):
+    """Analyze skill gaps and prioritize learning."""
+    from ..services.matcher import parse_job_description, compute_skill_overlap
+    
+    resume = resume_store.get(resume_id, get_sample_resume())
+    jd = parse_job_description(job_description)
+    
+    skill_overlap = compute_skill_overlap(resume.skill_names, jd.required_skills + jd.preferred_skills)
+    
+    # Prioritize missing skills
+    missing_required = [s for s in skill_overlap["missing"] if s in jd.required_skills]
+    missing_preferred = [s for s in skill_overlap["missing"] if s in jd.preferred_skills]
+    
+    return {
+        "matched_skills": skill_overlap["matched"],
+        "missing_skills": skill_overlap["missing"],
+        "missing_required": missing_required,
+        "missing_preferred": missing_preferred,
+        "priority_skills": missing_required[:5],  # Top 5 to learn
+        "skill_match_percentage": round(skill_overlap["overlap_ratio"] * 100, 1),
+        "learning_recommendations": [
+            {
+                "skill": skill,
+                "priority": "high" if skill in missing_required else "medium",
+                "estimated_time": "2-4 weeks",
+                "resources": [f"Official {skill} documentation", "Online courses"]
+            }
+            for skill in (missing_required + missing_preferred)[:5]
+        ]
+    }
+
+
+# ─── RECRUITER SIMULATION (STEP 8) ───
+
+@router.post("/api/recruiter-simulation")
+async def simulate_recruiter(
+    resume_id: str = Form(None),
+    job_description: str = Form(...)
+):
+    """Simulate recruiter decision-making process."""
+    from ..services.recruiter_sim import simulate_recruiter_review, simulate_ats_screening
+    from ..services.matcher import parse_job_description
+    
+    resume = resume_store.get(resume_id, get_sample_resume())
+    jd = parse_job_description(job_description)
+    match_result = await match_resume_to_job(resume, job_description)
+    
+    # ATS screening first
+    ats_result = simulate_ats_screening(resume, jd)
+    
+    # Recruiter review (only if passed ATS)
+    recruiter_result = simulate_recruiter_review(resume, jd, match_result)
+    
+    return {
+        "ats_screening": ats_result,
+        "recruiter_review": recruiter_result,
+        "overall_verdict": recruiter_result["decision"],
+        "pass_probability": recruiter_result["interview_likelihood"]
+    }
+
+
+# ─── AGENTIC WORKFLOW (STEP 10) ───
+
+@router.post("/api/agent/analyze")
+async def agent_analyze(
+    resume_id: str = Form(None),
+    target_roles: str = Form("ML Engineer,Data Scientist")
+):
+    """Start agentic workflow - analyze profile."""
+    from ..services.agentic_copilot import get_workflow
+    
+    resume = resume_store.get(resume_id, get_sample_resume())
+    workflow = get_workflow()
+    
+    roles = [r.strip() for r in target_roles.split(",")]
+    analysis = workflow.analyze_profile(resume, roles)
+    
+    return analysis
+
+
+@router.post("/api/agent/plan")
+async def agent_plan(
+    resume_id: str = Form(None),
+    job_description: str = Form(None)
+):
+    """Create action plan based on analysis."""
+    from ..services.agentic_copilot import get_workflow
+    from ..services.matcher import parse_job_description
+    
+    resume = resume_store.get(resume_id, get_sample_resume())
+    workflow = get_workflow()
+    
+    # First analyze
+    analysis = workflow.analyze_profile(resume, ["ML Engineer"])
+    
+    # Then plan
+    jd = parse_job_description(job_description) if job_description else None
+    plan = workflow.create_action_plan(analysis, jd)
+    
+    return plan
+
+
+@router.get("/api/agent/track")
+async def agent_track():
+    """Track applications and get reminders."""
+    from ..services.agentic_copilot import get_workflow
+    
+    workflow = get_workflow()
+    tracking = workflow.track_applications()
+    
+    return tracking
+
+
+@router.get("/api/agent/status")
+async def agent_status():
+    """Get current workflow status."""
+    from ..services.agentic_copilot import get_workflow
+    
+    workflow = get_workflow()
+    status = workflow.get_workflow_status()
+    
+    return status
+
+
+@router.post("/api/agent/interview-prep")
+async def agent_interview_prep(
+    job_title: str = Form("ML Engineer")
+):
+    """Get interview preparation plan."""
+    from ..services.agentic_copilot import get_workflow
+    
+    workflow = get_workflow()
+    prep = workflow.simulate_interview_prep(job_title)
+    
+    return prep
+
+
+# ─── FULL PIPELINE (ALL STEPS) ───
+
+@router.post("/api/pipeline/full")
+async def run_full_pipeline(
+    resume_id: str = Form(None),
+    job_description: str = Form(...)
+):
+    """
+    Run the complete pipeline from Step 1 to Step 12.
+    Returns all intermediate results.
+    """
+    from ..services.matcher import parse_job_description
+    from ..services.explainability import generate_explainability_report
+    from ..services.recruiter_sim import simulate_recruiter_review, simulate_ats_screening
+    from ..services.agentic_copilot import get_workflow
+    
+    # STEP 2: Get parsed resume
+    resume = resume_store.get(resume_id, get_sample_resume())
+    
+    # STEP 3: Parse job description
+    jd = parse_job_description(job_description)
+    
+    # STEP 4: Semantic matching
+    match_result = await match_resume_to_job(resume, job_description)
+    
+    # STEP 5: Explainability (SHAP + DiCE)
+    explainability = generate_explainability_report(resume, jd, match_result)
+    
+    # STEP 6: Skill gap analysis
+    from ..services.matcher import compute_skill_overlap
+    skill_overlap = compute_skill_overlap(resume.skill_names, jd.required_skills + jd.preferred_skills)
+    
+    # STEP 7: Resume optimization
+    improvements = await rewrite_resume_bullets(
+        [{"description": exp.description} for exp in resume.experiences[:3]],
+        job_description
+    )
+    
+    # STEP 8: Recruiter simulation
+    ats_result = simulate_ats_screening(resume, jd)
+    recruiter_result = simulate_recruiter_review(resume, jd, match_result)
+    
+    # STEP 9: Application generation
+    cover_letter = await generate_cover_letter(resume.raw_text, job_description, "professional")
+    
+    # STEP 10: Agentic workflow
+    workflow = get_workflow()
+    analysis = workflow.analyze_profile(resume, [jd.title or "Target Role"])
+    plan = workflow.create_action_plan(analysis, jd)
+    tracking = workflow.track_applications()
+    
+    return {
+        "step_2_resume_parsing": {
+            "skills": resume.skill_names,
+            "experience_count": len(resume.experiences),
+            "projects": [p.get("name", "") for p in resume.projects],
+            "education": [e.degree for e in resume.education]
+        },
+        "step_3_jd_parsing": {
+            "title": jd.title,
+            "required_skills": jd.required_skills,
+            "preferred_skills": jd.preferred_skills,
+            "experience_required": jd.experience_required
+        },
+        "step_4_matching": {
+            "overall_score": match_result.overall_score,
+            "dimensions": [d.model_dump() for d in match_result.dimensions],
+            "summary": match_result.summary
+        },
+        "step_5_explainability": explainability,
+        "step_6_skill_gap": {
+            "matched": skill_overlap["matched"],
+            "missing": skill_overlap["missing"],
+            "priority": [s for s in skill_overlap["missing"] if s in jd.required_skills][:5]
+        },
+        "step_7_optimization": {
+            "improvements": [imp.model_dump() for imp in improvements]
+        },
+        "step_8_recruiter_sim": {
+            "ats": ats_result,
+            "recruiter": recruiter_result
+        },
+        "step_9_application": {
+            "cover_letter": cover_letter[:500] + "..." if len(cover_letter) > 500 else cover_letter,
+            "optimized_resume": "Generated based on improvements"
+        },
+        "step_10_agentic": {
+            "analysis": analysis,
+            "plan": plan,
+            "tracking": tracking
+        }
+    }
