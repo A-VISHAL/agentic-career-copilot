@@ -44,7 +44,6 @@ const PipelineDashboard = ({ onNavigateHome }) => {
   ]
 
   const breadcrumbItems = [
-    { label: 'Home', onClick: onNavigateHome },
     { label: 'Pipeline Dashboard' }
   ]
 
@@ -168,15 +167,45 @@ const PipelineDashboard = ({ onNavigateHome }) => {
       </a>
 
       {/* Navigation */}
-      <div style={{ position: 'fixed', top: '20px', left: '20px', zIndex: 1000 }} className="nav-container">
-        <NavigationButton
-          onClick={onNavigateHome}
-          label="Back to Home"
-          icon="←"
-          ariaLabel="Navigate back to home page"
-        />
-        <Breadcrumb items={breadcrumbItems} />
-      </div>
+      <button
+        onClick={onNavigateHome}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          background: 'rgba(107, 107, 255, 0.3)',
+          color: '#EDF2FF',
+          padding: '14px 24px',
+          borderRadius: '8px',
+          fontWeight: '700',
+          fontSize: '16px',
+          border: '2px solid rgba(107, 107, 255, 0.5)',
+          cursor: 'pointer',
+          minWidth: '44px',
+          minHeight: '44px'
+        }}
+      >
+        <span style={{ fontSize: '18px' }}>←</span>
+        <span>Back to Home</span>
+      </button>
+      
+      <span 
+        style={{ 
+          position: 'absolute',
+          top: '32px',
+          right: '20px',
+          zIndex: 1000,
+          color: '#EDF2FF', 
+          fontSize: '18px', 
+          fontWeight: '700' 
+        }}
+      >
+        Pipeline Dashboard
+      </span>
 
       {/* Main content */}
       <div id="main-content" style={{ maxWidth: '1400px', margin: '0 auto' }}>
@@ -369,11 +398,20 @@ const PipelineDashboard = ({ onNavigateHome }) => {
           .step-grid {
             grid-template-columns: repeat(2, 1fr) !important;
           }
-          .nav-container button {
-            padding: 12px !important;
-          }
           .nav-container {
-            margin: 12px !important;
+            top: 12px !important;
+            left: 12px !important;
+            right: 12px !important;
+            width: calc(100vw - 24px) !important;
+            padding: 12px 16px !important;
+            flex-wrap: nowrap !important;
+          }
+          .nav-container button {
+            padding: 10px 16px !important;
+            font-size: 14px !important;
+          }
+          .nav-container nav {
+            font-size: 14px !important;
           }
         }
 
