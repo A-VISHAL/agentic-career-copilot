@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { api } from '../utils/api'
+import { uploadResume, getSampleResume } from '../utils/api'
+
+const API_BASE = 'http://localhost:8000'
 
 const PipelineDashboard = () => {
   const [loading, setLoading] = useState(false)
@@ -33,14 +35,8 @@ const PipelineDashboard = () => {
     setCurrentStep(1)
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await api.post('/api/resume/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-
-      setResumeId(response.data.resume_id)
+      const response = await uploadResume(file)
+      setResumeId(response.resume_id)
       setCurrentStep(2)
     } catch (error) {
       console.error('Upload error:', error)
@@ -63,8 +59,8 @@ const PipelineDashboard = () => {
       // Use sample if no resume uploaded
       let currentResumeId = resumeId
       if (!currentResumeId) {
-        const sampleResponse = await api.get('/api/resume/sample')
-        currentResumeId = sampleResponse.data.resume_id
+        const sampleResponse = await getSampleResume()
+        currentResumeId = sampleResponse.resume_id
         setResumeId(currentResumeId)
       }
 
@@ -79,8 +75,12 @@ const PipelineDashboard = () => {
         await new Promise(resolve => setTimeout(resolve, 500))
       }
 
-      const response = await api.post('/api/pipeline/full', formData)
-      setPipelineData(response.data)
+      const response = await fetch(`${API_BASE}/api/pipeline/full`, {
+        method: 'POST',
+        body: formData
+      })
+      const data = await response.json()
+      setPipelineData(data)
       setCurrentStep(12)
     } catch (error) {
       console.error('Pipeline error:', error)
@@ -93,8 +93,8 @@ const PipelineDashboard = () => {
   const useSampleData = async () => {
     setLoading(true)
     try {
-      const response = await api.get('/api/resume/sample')
-      setResumeId(response.data.resume_id)
+      const response = await getSampleResume()
+      setResumeId(response.resume_id)
       setJobDescription('Senior ML Engineer with 3+ years experience. Required: Python, PyTorch, FastAPI, NLP, Docker, AWS. Preferred: React, PostgreSQL.')
       setCurrentStep(1)
     } catch (error) {
