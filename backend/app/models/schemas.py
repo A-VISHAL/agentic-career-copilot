@@ -157,3 +157,67 @@ class ChatRequest(BaseModel):
     resume_context: Optional[str] = None
     job_context: Optional[str] = None
     mode: str = "interview"  # "interview", "coach", "general"
+
+
+# Job Search Models
+
+class RawJobListing(BaseModel):
+    """Raw job data from external API"""
+    external_id: str
+    title: str
+    company: str
+    location: str
+    description: str
+    salary_min: Optional[float] = None
+    salary_max: Optional[float] = None
+    apply_url: str
+    job_type: str = "full-time"
+    posted_date: Optional[str] = None
+    source: str  # "adzuna" or "jsearch"
+
+
+class JobRecommendation(BaseModel):
+    """Processed job recommendation with match data"""
+    id: str
+    title: str
+    company: str
+    location: str
+    description: str
+    salary_range: Optional[str] = None
+    required_skills: list[str] = []
+    matched_skills: list[str] = []
+    missing_skills: list[str] = []
+    match_score: float = Field(ge=0, le=100)
+    apply_link: str
+    job_type: str = "full-time"
+    remote: bool = False
+    posted_date: Optional[str] = None
+    source: str
+
+
+class JobRecommendationsResponse(BaseModel):
+    """API response for job recommendations"""
+    jobs: list[JobRecommendation]
+    total: int
+    page: int
+    per_page: int
+    has_more: bool
+    search_query: str
+    filters_applied: dict
+
+
+class JobSearchPreferences(BaseModel):
+    """User preferences for job search"""
+    job_type: str = "both"  # "internship", "full-time", "both"
+    location: str = ""
+    min_salary: Optional[float] = None
+    remote_only: bool = False
+
+
+class JobApplicationTracking(BaseModel):
+    """Track user applications"""
+    job_id: str
+    resume_id: str
+    applied_at: str
+    apply_link: str
+    status: str = "applied"  # "applied", "viewed", "saved"
